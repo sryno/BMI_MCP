@@ -6,4 +6,5 @@ httpx>=0.28.0
 python-dotenv>=1.0.0
 requests>=2.31.0
 pytest>=8.3.4
-mcp==1.7.0
+mcp>=1.7.0
+openai>=1.79.0

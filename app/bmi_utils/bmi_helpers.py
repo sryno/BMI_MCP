@@ -46,3 +46,11 @@ def get_usda_api_key() -> str:
     if not api_key:
         raise HTTPException(status_code=500, detail="USDA API key not configured")
     return api_key
+
+
+def get_openai_api_key() -> str | None:
+    """Get OpenAI API key from environment variable or use a default for development."""
+    api_key = os.environ.get("OPENAI_API_KEY")
+    if not api_key:
+        return None
+    return api_key

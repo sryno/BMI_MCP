@@ -26,8 +26,10 @@ from bmi_utils.bmi_classes import (
 from bmi_utils.bmi_helpers import (
     get_bmi_category,
     get_body_fat_category,
-    get_usda_api_key
+    get_usda_api_key,
+    get_openai_api_key
 )
+from bmi_utils.bmi_llm import get_food_item_from_llm
 
 
 # Load environment variables from .env file
@@ -227,7 +229,7 @@ async def calculate_food_nutrition(
                 "api_key": api_key,
                 "query": ingredient,
                 "dataType": "Foundation,SR Legacy",
-                "pageSize": 100
+                "pageSize": 25 # Get the first 25 foods that match
             }
             
             try:
@@ -249,7 +251,22 @@ async def calculate_food_nutrition(
                     })
                     continue
 
-                food = search_data["foods"][0]
+                # Check if OpenAI API key is available and use LLM to get the most likely food item
+                if not get_openai_api_key():
+                    food = search_data["foods"][0]
+                else:
+                    try:
+                        chosen_index = get_food_item_from_llm(
+                            ingredient,
+                            [food["description"] for food in search_data["foods"]]
+                        )["index"]
+                    except Exception as e:
+                        raise HTTPException(status_code=500, detail=f"Error from LLM: {e}")
+                    if not chosen_index:
+                        food = search_data["foods"][0]
+                    else:
+                        food = search_data["foods"][chosen_index]
+
                 food_id = food["fdcId"]
                 
                 # Get detailed nutrition data
@@ -279,6 +296,8 @@ async def calculate_food_nutrition(
                     # print(f"{nutrient_id} / {nutrient.get('nutrient', {}).get('name')}: {value}")
                     
                     if nutrient_id == 2047:  # Energy (kcal)
+                        calories = value
+                    elif nutrient_id == 1008 and calories == 0.0:  # Energy (kcal) secondary
                         calories = value
                     elif nutrient_id == 1003:  # Protein
                         protein = value
