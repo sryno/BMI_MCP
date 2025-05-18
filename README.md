@@ -28,6 +28,9 @@ pip install -r requirements.txt
 # For the USDA FoodData Central API
 # Get your API key from https://fdc.nal.usda.gov/api-key-signup.html
 export USDA_API_KEY="your_api_key_here"
+
+# (Optional) For the OpenAI API
+export OPENAI_API_KEY="your_api_key_here"
 ```
 
 ## Running the Application
